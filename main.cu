@@ -1,49 +1,50 @@
-#include <iostream>
+#include "type.cuh"
 
-#define cudaSafeCall(result) { cudaAssert((result), __FILE__, __LINE__); }
-inline void cudaAssert(cudaError_t result, const char* file, int line, bool abort=true)
+__global__ void square(kf::DepthMap depthMap)
 {
-    if (result != cudaSuccess) 
+    unsigned int uiX = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int uiY = threadIdx.y + blockIdx.y * blockDim.y;
+
+    if (depthMap.inside(uiX, uiY))
     {
-        std::cerr << "CUDA Assert: " << cudaGetErrorString(result) << "\n"
-                  << " *** [" << file << ":" << line << "]" << std::endl;
-        if (abort)
-            exit(result);
+        kf::Depth depth = depthMap(uiX, uiY);
+        depthMap(uiX, uiY) = depth * depth;
     }
-}
-
-
-__global__ void square(float* data)
-{
-    int i = threadIdx.x;
-    data[i] = data[i] * data[i];
 }
 
 int main()
 {
-    unsigned int number = 100;
+    kf::DepthMap depthMap(10, 10);
 
-    float* h_data;
-    float* d_data;
+    depthMap.allocate();
 
-    h_data = (float*)malloc(number * sizeof(float));
-    cudaSafeCall(cudaMalloc((void**)&d_data, number * sizeof(float)));
-    
-    for (unsigned int i = 0; i < number; i++)
-        h_data[i] = (float)i;
-    
-    cudaSafeCall(cudaMemcpy(d_data, h_data, number * sizeof(float), cudaMemcpyHostToDevice));
-    square<<<1, number>>>(d_data);
-    cudaSafeCall(cudaPeekAtLastError());
-    cudaSafeCall(cudaDeviceSynchronize());
-    cudaSafeCall(cudaMemcpy(h_data, d_data, number * sizeof(float), cudaMemcpyDeviceToHost));
-
-    for (unsigned int i = 0; i < number; i++)
-        std::cout << h_data[i] << (i % 10 == 9 ? "\n" : "\t");
+    for (unsigned int uiX = 0; uiX < 10; uiX++)
+    {
+        for (unsigned int uiY = 0; uiY < 10; uiY++)
+        {
+            depthMap.at(uiX, uiY) = (float)uiX * uiY;
+            std::cout << depthMap.at(uiX, uiY) << (uiY == 9 ? "\n" : "\t");
+        }
+    }
     std::cout << std::endl;
 
-    free(h_data);
-    cudaSafeCall(cudaFree(d_data));
+    depthMap.upload();
+
+    square<<<depthMap.grid, depthMap.block>>>(depthMap);
+    assertKernel("Failed to compute square");
+
+    depthMap.download();
+
+    for (unsigned int uiX = 0; uiX < 10; uiX++)
+    {
+        for (unsigned int uiY = 0; uiY < 10; uiY++)
+        {
+            std::cout << depthMap.at(uiX, uiY) << (uiY == 9 ? "\n" : "\t");
+        }
+    }
+    std::cout << std::endl;
+
+    depthMap.free();
 
     return 0;
 }

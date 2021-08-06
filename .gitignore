@@ -6,3 +6,6 @@ build/
 
 # virtual environment
 .venv/
+
+# Doxygen
+doc/
