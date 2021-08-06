@@ -1,6 +1,6 @@
 #include <iostream>
 
-#define cudaSafeCall(ans) { cudaAssert((ans), __FILE__, __LINE__); }
+#define cudaSafeCall(result) { cudaAssert((result), __FILE__, __LINE__); }
 inline void cudaAssert(cudaError_t result, const char* file, int line, bool abort=true)
 {
     if (result != cudaSuccess) 
@@ -33,7 +33,7 @@ int main()
         h_data[i] = (float)i;
     
     cudaSafeCall(cudaMemcpy(d_data, h_data, number * sizeof(float), cudaMemcpyHostToDevice));
-    square<<<1, number>>>(NULL);
+    square<<<1, number>>>(d_data);
     cudaSafeCall(cudaPeekAtLastError());
     cudaSafeCall(cudaDeviceSynchronize());
     cudaSafeCall(cudaMemcpy(h_data, d_data, number * sizeof(float), cudaMemcpyDeviceToHost));
