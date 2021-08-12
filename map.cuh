@@ -8,7 +8,7 @@ namespace kf
     /**
      * @brief 2D array class to save data between host(CPU) & device(GPU)
      * 
-     * @tparam T Type of data to store each map pixel
+     * @tparam T Type of data to save for each pixel of map
      */
     template<typename T>
     class Map
@@ -37,13 +37,13 @@ namespace kf
 
         /**
          * @brief Dimension of block
-         * @details Need to run CUDA kernel function
+         * @details Be used to run CUDA kernel function
          */
         const dim3& block = m_dimBlock;
 
         /**
          * @brief Dimension of grid
-         * @details Need to run CUDA kernel function
+         * @details Be used to run CUDA kernel function
          */
         const dim3& grid = m_dimGrid;
 
@@ -65,9 +65,9 @@ namespace kf
         Map(unsigned int uiWidth, unsigned int uiHeight) :
             m_uiWidth(uiWidth),
             m_uiHeight(uiHeight),
-            m_dimBlock(MAP_BLOCK_DIM_X, MAP_BLOCK_DIM_Y),
-            m_dimGrid((uiWidth + MAP_BLOCK_DIM_X - 1) / MAP_BLOCK_DIM_X,
-                      (uiHeight + MAP_BLOCK_DIM_Y - 1) / MAP_BLOCK_DIM_Y),
+            m_dimBlock(MAP_BLOCK_SIZE_X, MAP_BLOCK_SIZE_Y),
+            m_dimGrid((uiWidth + MAP_BLOCK_SIZE_X - 1) / MAP_BLOCK_SIZE_X,
+                      (uiHeight + MAP_BLOCK_SIZE_Y - 1) / MAP_BLOCK_SIZE_Y),
             h_pData(nullptr),
             d_pData(nullptr)
         {
