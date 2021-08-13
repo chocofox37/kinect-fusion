@@ -1,47 +1,33 @@
+#include <opencv2/opencv.hpp>
+
 #include "level.cuh"
-
-__global__ void square(kf::DepthMap depthMap)
-{
-    unsigned int uiX = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int uiY = threadIdx.y + blockIdx.y * blockDim.y;
-
-    if (depthMap.inside(uiX, uiY))
-    {
-        kf::Depth depth = depthMap(uiX, uiY);
-        depthMap(uiX, uiY) = depth * depth;
-    }
-}
 
 int main()
 {
-    const unsigned int cuiN = 10;
-    kf::Level level(cuiN, cuiN, {0, 0, 0, 0});
+    cv::Mat matDepth = cv::imread("depth.png", cv::IMREAD_ANYDEPTH);
+    matDepth.convertTo(matDepth, CV_32FC1);
+    matDepth = matDepth / 5000.0;
+    
+    kf::Intrinsic intrinsic = {525.0, 525.0, 319.5, 239.5};
+    kf::Level level(matDepth.cols, matDepth.rows, intrinsic);
 
-    for (unsigned int uiX = 0; uiX < cuiN; uiX++)
-    {
-        for (unsigned int uiY = 0; uiY < cuiN; uiY++)
-        {
-            level.depthMap.at(uiX, uiY) = (float)uiX * uiY;
-            std::cout << level.depthMap.at(uiX, uiY) << (uiY + 1 == cuiN ? "\n" : "\t");
-        }
-    }
-    std::cout << std::endl;
+    level.setDepthMap((kf::Depth*)matDepth.data);
+    level.computeVertexMap();
+    level.computeNormalMap();
 
-    level.depthMap.upload();
+    cv::Mat matVertex(matDepth.rows, matDepth.cols, CV_32FC3, level.vertexMap.data());
+    cv::cvtColor(matVertex, matVertex, cv::COLOR_RGB2BGR);
 
-    square<<<level.grid, level.block>>>(level.depthMap);
-    assertKernel("Failed to compute square");
+    cv::Mat matNormal(matDepth.rows, matDepth.cols, CV_32FC3, level.normalMap.data());
+    cv::cvtColor(matNormal, matNormal, cv::COLOR_RGB2BGR);
 
-    level.depthMap.download();
+    cv::Mat matValidity(matDepth.rows, matDepth.cols, CV_8UC1, level.validityMask.data());
 
-    for (unsigned int uiX = 0; uiX < cuiN; uiX++)
-    {
-        for (unsigned int uiY = 0; uiY < cuiN; uiY++)
-        {
-            std::cout << level.depthMap.at(uiX, uiY) << (uiY + 1 == cuiN ? "\n" : "\t");
-        }
-    }
-    std::cout << std::endl;
+    cv::imshow("Depth Map", matDepth / 4.0);
+    cv::imshow("Vertex Map", matVertex);
+    cv::imshow("Normal Map", matNormal * 0.5 + 0.5);
+    cv::imshow("Validity Mask", matValidity * 255);
+    cv::waitKey(0);
 
     return 0;
 }

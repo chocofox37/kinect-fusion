@@ -13,6 +13,7 @@ namespace kf
         DepthMap m_depthMap;
         VertexMap m_vertexMap;
         NormalMap m_normalMap;
+        ValidityMask m_validityMask;
         dim3 m_dimBlock;
         dim3 m_dimGrid;
     public:
@@ -22,6 +23,7 @@ namespace kf
         DepthMap& depthMap = m_depthMap;
         VertexMap& vertexMap = m_vertexMap;
         NormalMap& normalMap = m_normalMap;
+        ValidityMask& validityMask = m_validityMask;
         dim3& block = m_dimBlock;
         dim3& grid = m_dimGrid;
     private:
@@ -29,5 +31,8 @@ namespace kf
     public:
         Level(unsigned int uiWidth, unsigned int uiHeight, Intrinsic intrinsic);
         ~Level();
+        void setDepthMap(const Depth* pDepth);
+        void computeVertexMap();
+        void computeNormalMap();
     };
 }
