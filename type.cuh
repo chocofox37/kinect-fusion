@@ -7,6 +7,18 @@
 namespace kf
 {
     /**
+     * @brief Camera intrinsic parameters (focal length, principal point)
+     * @details Struct of 4 float numbers ({float, float, float, float})
+     */
+    struct Intrinsic
+    {
+        float fx; /**< Focal length (X direction) */
+        float fy; /**< Focal length (Y direction) */
+        float cx; /**< Principal point (X coordinate) */
+        float cy; /**< Principal point (Y coordinate) */
+    };
+
+    /**
      * @brief Depth data
      * @details Float number (float)
      */

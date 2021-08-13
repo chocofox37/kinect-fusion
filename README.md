@@ -1,5 +1,11 @@
 # KinectFusion
 
+## Requirements
+
+- Eigen
+
+- OpenCV
+
 ## Documentation
 
 - Install Doxygen
@@ -14,4 +20,8 @@ sudo apt install doxygen graphviz
 doxygen Doxyfile
 ```
 
-- Open `doc/html/index.html` file in web browser
+- Open documentation in the web browser
+
+```shell
+firefox doc/html/index.html
+```

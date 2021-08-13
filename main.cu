@@ -1,4 +1,4 @@
-#include "type.cuh"
+#include "level.cuh"
 
 __global__ void square(kf::DepthMap depthMap)
 {
@@ -14,37 +14,34 @@ __global__ void square(kf::DepthMap depthMap)
 
 int main()
 {
-    kf::DepthMap depthMap(10, 10);
+    const unsigned int cuiN = 10;
+    kf::Level level(cuiN, cuiN, {0, 0, 0, 0});
 
-    depthMap.allocate();
-
-    for (unsigned int uiX = 0; uiX < 10; uiX++)
+    for (unsigned int uiX = 0; uiX < cuiN; uiX++)
     {
-        for (unsigned int uiY = 0; uiY < 10; uiY++)
+        for (unsigned int uiY = 0; uiY < cuiN; uiY++)
         {
-            depthMap.at(uiX, uiY) = (float)uiX * uiY;
-            std::cout << depthMap.at(uiX, uiY) << (uiY == 9 ? "\n" : "\t");
+            level.depthMap.at(uiX, uiY) = (float)uiX * uiY;
+            std::cout << level.depthMap.at(uiX, uiY) << (uiY + 1 == cuiN ? "\n" : "\t");
         }
     }
     std::cout << std::endl;
 
-    depthMap.upload();
+    level.depthMap.upload();
 
-    square<<<depthMap.grid, depthMap.block>>>(depthMap);
+    square<<<level.grid, level.block>>>(level.depthMap);
     assertKernel("Failed to compute square");
 
-    depthMap.download();
+    level.depthMap.download();
 
-    for (unsigned int uiX = 0; uiX < 10; uiX++)
+    for (unsigned int uiX = 0; uiX < cuiN; uiX++)
     {
-        for (unsigned int uiY = 0; uiY < 10; uiY++)
+        for (unsigned int uiY = 0; uiY < cuiN; uiY++)
         {
-            std::cout << depthMap.at(uiX, uiY) << (uiY == 9 ? "\n" : "\t");
+            std::cout << level.depthMap.at(uiX, uiY) << (uiY + 1 == cuiN ? "\n" : "\t");
         }
     }
     std::cout << std::endl;
-
-    depthMap.free();
 
     return 0;
 }

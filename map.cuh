@@ -1,25 +1,26 @@
 #pragma once
 
-#include "setting.cuh"
+#include "config.cuh"
 #include "helper.cuh"
 
 namespace kf
 {
     /**
-     * @brief 2D array class to save data between host(CPU) & device(GPU)
+     * @brief 2D array that saves data between host(CPU) & device(GPU)
      * 
-     * @tparam T Type of data to save for each pixel of map
+     * @tparam T Type of data to save for each pixel
      */
     template<typename T>
     class Map
     {
     private:
-        unsigned int m_uiWidth;     /**< Width (Number of pixels in X direction) */
-        unsigned int m_uiHeight;    /**< Height (Number of pixels in Y direction) */
-        dim3 m_dimBlock;    /**< Dimension of block to run CUDA kernel function */
-        dim3 m_dimGrid;     /**< Dimension of grid to run CUDA kernel function */
-        T* h_pData;     /**< Pointer of data from host(CPU) */
-        T* d_pData;     /**< Pointer of data from device(GPU) */
+
+        unsigned int m_uiWidth;  /**< Width (Number of pixels in X direction) */
+        unsigned int m_uiHeight; /**< Height (Number of pixels in Y direction) */
+        dim3 m_dimBlock; /**< Dimension of block to run CUDA kernel function */
+        dim3 m_dimGrid;  /**< Dimension of grid to run CUDA kernel function */
+        T* h_pData; /**< Pointer of data from host(CPU) */
+        T* d_pData; /**< Pointer of data from device(GPU) */
 
     public:
 
@@ -56,6 +57,7 @@ namespace kf
         Map() = delete;
 
     public:
+
         /**
          * @brief Construct a new Map object
          * 
@@ -66,7 +68,7 @@ namespace kf
             m_uiWidth(uiWidth),
             m_uiHeight(uiHeight),
             m_dimBlock(MAP_BLOCK_SIZE_X, MAP_BLOCK_SIZE_Y),
-            m_dimGrid((uiWidth + MAP_BLOCK_SIZE_X - 1) / MAP_BLOCK_SIZE_X,
+            m_dimGrid((uiWidth  + MAP_BLOCK_SIZE_X - 1) / MAP_BLOCK_SIZE_X,
                       (uiHeight + MAP_BLOCK_SIZE_Y - 1) / MAP_BLOCK_SIZE_Y),
             h_pData(nullptr),
             d_pData(nullptr)
@@ -181,11 +183,11 @@ namespace kf
          * @param uiMargin Margin (More gap to check with)
          * @return Inside(true) or outside(false)
          */
-        __device__ bool inside(unsigned int uiX, unsigned int uiY, unsigned int uiMargin = 0)
+        __device__ bool inside(unsigned int uiX, unsigned int uiY, unsigned int uiMargin = 0) const
         {
             // check indices with margin
-            return (uiX >= uiMargin && uiY >= uiMargin &&
-                    uiX + uiMargin < m_uiWidth && uiY + uiMargin < m_uiHeight);
+            return (uiX >= uiMargin && uiX + uiMargin < m_uiWidth && 
+                    uiY >= uiMargin && uiY + uiMargin < m_uiHeight);
         }
 
         /**
@@ -197,7 +199,7 @@ namespace kf
          * @param iMargin Margin (More gap to check with)
          * @return Inside(true) or outside(false) 
          */
-        __device__ bool inside(int iX, int iY, int iMargin = 0)
+        __device__ bool inside(int iX, int iY, int iMargin = 0) const
         {
             // check negative indices and margin
             if (iX < 0 || iY < 0 || iMargin < 0) return false;
